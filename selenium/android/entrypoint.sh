@@ -40,46 +40,49 @@ clean() {
 
 trap clean SIGINT SIGTERM
 
-/usr/bin/xvfb-run -e /dev/stdout -l -n "$DISPLAY_NUM" -s "-ac -screen 0 $SCREEN_RESOLUTION -noreset -listen tcp" /usr/bin/fluxbox -display "$DISPLAY" -log /tmp/fluxbox.log 2>/dev/null &
-XVFB_PID=$!
+#/usr/bin/xvfb-run -e /dev/stdout -l -n "$DISPLAY_NUM" -s "-ac -screen 0 $SCREEN_RESOLUTION -noreset -listen tcp" /usr/bin/fluxbox -display "$DISPLAY" -log /tmp/fluxbox.log 2>/dev/null &
+#XVFB_PID=$!
 
-retcode=1
-until [ $retcode -eq 0 -o -n "$STOP" ]; do
-  DISPLAY="$DISPLAY" wmctrl -m >/dev/null 2>&1
-  retcode=$?
-  if [ $retcode -ne 0 ]; then
-    echo Waiting X server...
-    sleep 0.1
-  fi
-done
+#retcode=1
+#until [ $retcode -eq 0 -o -n "$STOP" ]; do
+#  DISPLAY="$DISPLAY" wmctrl -m >/dev/null 2>&1
+#  retcode=$?
+#  if [ $retcode -ne 0 ]; then
+#    echo Waiting X server...
+#    sleep 0.1
+#  fi
+#done
 if [ -n "$STOP" ]; then exit 0; fi
 
-if [ "$ENABLE_VNC" != "true" -a "$ENABLE_VIDEO" != "true" ]; then
-    EMULATOR_ARGS="$EMULATOR_ARGS -no-window"
-fi
-ANDROID_AVD_HOME=/root/.android/avd DISPLAY="$DISPLAY" /opt/android-sdk-linux/emulator/emulator ${EMULATOR_ARGS} -writable-system -no-boot-anim -no-audio -no-jni -avd @AVD_NAME@ -sdcard /sdcard.img -skin "$SKIN" -skindir /opt/android-sdk-linux/platforms/@PLATFORM@/skins/ -gpu swiftshader_indirect -ranchu -qemu -enable-kvm &
-EMULATOR_PID=$!
+#if [ "$ENABLE_VNC" != "true" -a "$ENABLE_VIDEO" != "true" ]; then
+#    EMULATOR_ARGS="$EMULATOR_ARGS -no-window"
+#fi
+#ANDROID_AVD_HOME=/root/.android/avd DISPLAY="$DISPLAY" /opt/android-sdk-linux/emulator/emulator ${EMULATOR_ARGS} -writable-system -no-boot-anim -no-audio -no-jni -avd @AVD_NAME@ -sdcard /sdcard.img -skin "$SKIN" -skindir /opt/android-sdk-linux/platforms/@PLATFORM@/skins/ -gpu swiftshader_indirect -ranchu -qemu -enable-kvm &
+#EMULATOR_PID=$!
 
-if [ "$ENABLE_VNC" == "true" ]; then
-    x11vnc -display "$DISPLAY" -passwd selenoid -shared -forever -loop500 -rfbport 5900 -rfbportv6 5900 -logfile /tmp/x11vnc.log &
-    X11VNC_PID=$!
-fi
+#if [ "$ENABLE_VNC" == "true" ]; then
+#    x11vnc -display "$DISPLAY" -passwd selenoid -shared -forever -loop500 -rfbport 5900 -rfbportv6 5900 -logfile /tmp/x11vnc.log &
+#    X11VNC_PID=$!
+#fi
 
-while [ "`adb shell getprop sys.boot_completed | tr -d '\r' `" != "1" -a -z "$STOP" ] ; do sleep 1; done
+#while [ "`adb shell getprop sys.boot_completed | tr -d '\r' `" != "1" -a -z "$STOP" ] ; do sleep 1; done
 if [ -n "$STOP" ]; then exit 0; fi
 
-if [ -n "@CHROME_MOBILE@" ]; then
-    while ip addr | grep inet | grep -q tentative > /dev/null; do sleep 0.1; done
-	APPIUM_ARGS="$APPIUM_ARGS --chromedriver-port $CHROMEDRIVER_PORT"
-    /usr/bin/devtools --android &
-    DEVTOOLS_PID=$!
-fi
+#if [ -n "@CHROME_MOBILE@" ]; then
+#    while ip addr | grep inet | grep -q tentative > /dev/null; do sleep 0.1; done
+#	APPIUM_ARGS="$APPIUM_ARGS --chromedriver-port $CHROMEDRIVER_PORT"
+#    /usr/bin/devtools --android &
+#    DEVTOOLS_PID=$!
+#fi
 
-if [ -x "/usr/bin/chromedriver" ]; then
-    APPIUM_ARGS="$APPIUM_ARGS --chromedriver-executable /usr/bin/chromedriver"
-fi
+#if [ -x "/usr/bin/chromedriver" ]; then
+#    APPIUM_ARGS="$APPIUM_ARGS --chromedriver-executable /usr/bin/chromedriver"
+#fi
 
 /opt/node_modules/.bin/appium -a 0.0.0.0 -p "$PORT" -bp "$BOOTSTRAP_PORT" -U "$EMULATOR" --platform-name Android --device-name android --log-timestamp --log-no-colors --command-timeout 90 --no-reset ${APPIUM_ARGS} --default-capabilities '{"androidNaturalOrientation": true}' &
 APPIUM_PID=$!
+######TODO:: Call Appium server to connect to our server!####
+#/opt/node_modules/.bin/appium -a 0.0.0.0 -p "$PORT" -bp "$BOOTSTRAP_PORT" --node-config /opt/nodeconfig-android.json --log-timestamp --log-no-colors --command-timeout 90 --no-reset ${APPIUM_ARGS} --default-capabilities '{"androidNaturalOrientation": true}' &
+#APPIUM_PID=$!
 
 wait

@@ -1,7 +1,7 @@
 FROM selenoid/base:7.0
 
 ARG VERSION
-ARG PACKAGE=google-chrome-stable
+ARG PACKAGE=google-chrome-beta
 ARG INSTALL_DIR=chrome
 
 LABEL browser=$PACKAGE:$VERSION
